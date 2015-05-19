@@ -1,8 +1,12 @@
 package com.example.criminalintentsolution;
+import java.util.Date;
 import java.util.UUID;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -21,6 +25,8 @@ public class CrimeFragment extends Fragment {
  private Button mDateButton;
  private CheckBox mSolvedCheckBox;
  public static final String EXTRA_CRIME_ID = "com.example.criminalintentsolution.crime_id";
+ private static final String DIALOG_DATE = "date";
+ private static final int REQUEST_DATE = 0;
  
  public static CrimeFragment newInstance(UUID crimeId) {
 	 Bundle args = new Bundle();
@@ -28,6 +34,21 @@ public class CrimeFragment extends Fragment {
 	 CrimeFragment fragment = new CrimeFragment();
 	 fragment.setArguments(args);
 	 return fragment;
+ }
+ public void updateDate() {
+	 mDateButton.setText(mCrime.getDate().toString());
+
+ }
+ @Override
+ public void onActivityResult(int requestCode, int resultCode, Intent data) {
+	 if(resultCode != Activity.RESULT_OK) return;
+	 if(requestCode == REQUEST_DATE) {
+		 Date date = (Date)data
+				 .getSerializableExtra(DatePickerFragment.EXTRA_DATE);
+		 mCrime.setDate(date);
+		 updateDate();
+		 //mDateButton.setText(mCrime.getDate().toString());
+	 }
  }
  @Override
  public void onCreate(Bundle savedInstanceState)
@@ -58,9 +79,18 @@ public class CrimeFragment extends Fragment {
 		 
 	 });
 	 mDateButton = (Button)v.findViewById(R.id.crime_date);
-	 mDateButton.setText(mCrime.getDate().toString());
-	 mDateButton.setEnabled(false);
-	 
+	 updateDate();
+	 //mDateButton.setText(mCrime.getDate().toString());
+	 //mDateButton.setEnabled(false);
+	 mDateButton.setOnClickListener(new View.OnClickListener() {
+		 public void onClick(View v) {
+			 FragmentManager fm = getActivity().getSupportFragmentManager();
+			 //DatePickerFragment dialog = new DatePickerFragment();
+			 DatePickerFragment dialog = DatePickerFragment.newInstance(mCrime.getDate());
+			 dialog.setTargetFragment(CrimeFragment.this, REQUEST_DATE);
+			 dialog.show(fm, DIALOG_DATE);
+		 }
+	 });
 	 mSolvedCheckBox = (CheckBox)v.findViewById(R.id.crime_solved);
 	 mSolvedCheckBox.setChecked(mCrime.isSolved());
 	 mSolvedCheckBox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
